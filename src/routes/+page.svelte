@@ -5,20 +5,22 @@ import { Button } from "$lib/components/ui/button/index.js";
 import { Label } from "$lib/components/ui/label/index.js";
 import { Input } from "$lib/components/ui/input/index.js";
 import * as Card from "$lib/components/ui/card/index.js";
-import { Loader2 } from "@lucide/svelte";
+import { LoaderCircle } from "@lucide/svelte";
 
 let username = "";
 let password = "";
 let message = "";
 let isLoading = false;
 
-let errors = {};
+type LoginFields = z.infer<typeof loginSchema>;
+let errors: Partial<Record<keyof LoginFields, string[]>> = {};
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is requiered"),
 })
 .strict() // dont allow extra fields from request  
+
 
 async function handleLogin() {
   errors = {}
@@ -27,7 +29,12 @@ async function handleLogin() {
   const result = loginSchema.safeParse({ username, password });
 
   if (!result.success) {
-    errors = result.error.flatten().fieldErrors;
+    const flat = result.error.issues.reduce((acc, issue) => {
+        const key = issue.path[0] as keyof LoginFields;
+        if (key) acc[key] = [...(acc[key] ?? []), issue.message];
+        return acc;
+    }, {} as Partial<Record<keyof LoginFields, string[]>>);
+    errors = flat;
     return;
   }
 
@@ -78,12 +85,13 @@ async function handleLogin() {
           <div class="grid gap-2">
             <div class="flex items-center">
               <Label for="nur-password">Password</Label>
-              <a
-                href="##"
-                class="ms-auto inline-block text-sm underline-offset-4 hover:underline"
-              >
-                Forgot your password?
-              </a>
+              <Card.Description class="ms-auto inline-block text-sm underline-offset-4 hover:underline">
+                <a
+                  href="##"
+                >
+                  Forgot your password?
+                </a>
+              </Card.Description>
             </div>
             <Input id="nur-password" bind:value={password} type="password" required />
             {#if errors.password}
@@ -101,9 +109,9 @@ async function handleLogin() {
       </Card.Content>
       <Card.Footer class="flex flex-col mt-2 w-full">
         <Card.Action class="w-full">
-          <Button type="submit" class="w-full" disable={isLoading}>
+          <Button type="submit" class="w-full" disabled={isLoading}>
             {#if isLoading}
-              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+              <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
               Please wait
             {:else}
               Login
