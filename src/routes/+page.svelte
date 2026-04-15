@@ -51,7 +51,7 @@ async function handleLogin() {
     if (response.ok) {
       message = "Logged in successfully!";
       console.log("User data:", resultData.user);
-      // Save resultData.user to a store or cookie here
+      // save resultData.user to a store or cookie here
     } else {
       message = resultData.error || "Login failed";
     }
@@ -87,7 +87,7 @@ async function handleLogin() {
               <Label for="nur-password">Password</Label>
               <Card.Description class="ms-auto inline-block text-sm underline-offset-4 hover:underline">
                 <a
-                  href="##"
+                  href="/forgotPassword"
                 >
                   Forgot your password?
                 </a>
